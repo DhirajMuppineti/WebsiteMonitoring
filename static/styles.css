@@ -1,0 +1,41 @@
+.status-circle {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.operational {
+    background-color: #28a745;
+}
+
+.degraded {
+    background-color: #ffc107;
+}
+
+.partial{
+    background-color: #dc3545;
+}
+
+.major{
+    background-color: #dc3545;
+}
+
+.unknown {
+    background-color: #6c757d;
+}
+
+/* Custom CSS for anchor tags */
+.card-link {
+    color: inherit;
+    /* Use the same text color as the parent element */
+    text-decoration: none;
+    /* Remove underline */
+}
+
+/* Custom CSS for anchor tags on hover */
+.card-link:hover {
+    background-color: transparent !important;
+    /* Remove background color on hover */
+}

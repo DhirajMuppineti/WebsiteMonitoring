@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ website_name }} </title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='general.css') }}">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">Website Monitoring</a>
+    </nav>
+
+    <div class="container mt-4">
+        <h2 class="mb-4">Dashboard for {{ website_name }}</h2>
+        <div class="row">
+            <div class="col-md-8">
+                <div id="responseTimesChart"></div>
+            </div>
+            <div class="col-md-4">
+                <h4>Website Details</h4>
+                <p>Status: <span style="color:{{ status_colours[website_status] }}">{{ website_status }}</span></p>
+                <p>Maximum Response Time: {{ max_response_time }} ms</p>
+                <p>Minimum Response Time: {{ min_response_time }} ms</p>
+                <p>Average Response Time: {{ avg_response_time }} ms</p>
+                <p>Median Response Time: {{ median_response_time }} ms</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var timestamps = {{ timestamps | tojson | safe }};
+        var responseTimes = {{ response_times | tojson | safe }};
+
+        var trace = {
+            x: timestamps,
+            y: responseTimes,
+            mode: 'lines+markers',
+            type: 'scatter'
+        };
+
+        var layout = {
+            title: 'Response Times',
+            xaxis: {
+                title: 'Timestamp'
+            },
+            yaxis: {
+                title: 'Response Time (ms)'
+            }
+        };
+
+        Plotly.newPlot('responseTimesChart', [trace], layout);
+    </script>
+
+    <!-- Histogram for Response Time Distribution -->
+    <div class="container mt-4">
+        <h3>Response Time Distribution</h3>
+        <div id="responseTimeDistribution"></div>
+    </div>
+
+    <script>
+        var responseTimes = {{ response_times | tojson | safe }};
+        var meanResponseTime = {{ avg_response_time | tojson | safe }};
+        var medianResponseTime = {{ median_response_time | tojson | safe }};
+
+        var trace = {
+            x: responseTimes,
+            type: 'histogram',
+            marker: { color: 'rgba(100, 149, 237, 0.6)' },
+            opacity: 0.75
+        };
+
+        var layout = {
+            title: 'Response Time Distribution',
+            xaxis: {
+                title: 'Response Time (ms)'
+            },
+            yaxis: {
+                title: 'Frequency'
+            },
+            shapes: [
+                {
+                    type: 'line',
+                    xref: 'x',
+                    yref: 'paper',
+                    x0: meanResponseTime,
+                    y0: 0,
+                    x1: meanResponseTime,
+                    y1: 1,
+                    line: {
+                        color: 'rgba(255, 0, 0, 0.8)',
+                        width: 2,
+                        dash: 'dash'
+                    }
+                },
+                {
+                    type: 'line',
+                    xref: 'x',
+                    yref: 'paper',
+                    x0: medianResponseTime,
+                    y0: 0,
+                    x1: medianResponseTime,
+                    y1: 1,
+                    line: {
+                        color: 'rgba(0, 255, 0, 0.8)',
+                        width: 2,
+                        dash: 'dash'
+                    }
+                }
+            ]
+        };
+
+        var annotations = [
+            {
+                x: meanResponseTime,
+                y: 0.5,
+                xref: 'x',
+                yref: 'paper',
+                text: 'Mean',
+                showarrow: true,
+                arrowhead: 2,
+                ax: 30,
+                ay: -30
+            },
+            {
+                x: medianResponseTime,
+                y: 0.5,
+                xref: 'x',
+                yref: 'paper',
+                text: 'Median',
+                showarrow: true,
+                arrowhead: 2,
+                ax: -30,
+                ay: -30
+            }
+        ];
+
+        layout.annotations = annotations;
+
+        Plotly.newPlot('responseTimeDistribution', [trace], layout);
+    </script>
+
+    <!-- Pie Chart for Status Counts -->
+    <div class="container mt-4">
+        <h3>Status Distribution</h3>
+        <div id="statusPieChart"></div>
+    </div>
+
+    <script>
+        var statuses = {{ statuses | tojson | safe }};
+        var statusCounts = {{ status_counts | tojson | safe }};
+        var colors = {
+            "Major Outage": "#dc3545",
+            "Partial Outage": "#dc3545",
+            "Operational (Slow Response)": "#ffc107",
+            "Operational": "#28a745",
+            "Unknown Status": "#6c757d"
+        };
+
+        var data = [{
+            values: Object.values(statusCounts),
+            labels: statuses,
+            type: 'pie',
+            marker: {
+                colors: Object.keys(statusCounts).map(function (status) {
+                    return colors[status];
+                })
+            }
+        }];
+
+        var layout = {
+            title: 'Status Distribution',
+        };
+
+        Plotly.newPlot('statusPieChart', data, layout);
+    </script>
+
+
+<!-- Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>
