@@ -19,7 +19,7 @@ Before running the application, ensure you have the following installed:
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/yourusername/website-monitoring.git
+    git clone https://github.com/DhirajMuppineti/WebsiteMonitoring.git
     ```
 
 2. Navigate to the project directory:
