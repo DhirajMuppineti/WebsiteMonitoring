@@ -35,6 +35,7 @@
         </div>
     </div>
 
+
     <script>
         var timestamps = {{ timestamps | tojson | safe }};
         var responseTimes = {{ response_times | tojson | safe }};
@@ -159,8 +160,8 @@
         var colors = {
             "Major Outage": "#dc3545",
             "Partial Outage": "#dc3545",
-            "Operational (Slow Response)": "#ffc107",
-            "Operational": "#28a745",
+            "Operational (Slow Response)": "#28a745",
+            "Operational": "#90ee90",
             "Unknown Status": "#6c757d"
         };
 

@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 from pymongo import MongoClient
 import numpy as np
 from collections import Counter
@@ -18,6 +18,7 @@ def index():
     # Fetch list of websites and their latest statuses
     website_statuses = []
     collections = db.list_collection_names()
+    # print(collections)
     for collection_name in collections:
         # Exclude internal collections
         if not collection_name.startswith("system."):
@@ -30,10 +31,14 @@ def index():
                     .sort("_id", -1)
                     .limit(10)
                 )
-                response_times = [entry["responseTime"] for entry in data]
+                response_times = [
+                    entry["responseTime"] if entry["responseTime"] else 0
+                    for entry in data
+                ]
 
+                # print(collection_name, response_times)
                 # Calculate average response time
-                avg_response_time = round(np.mean(response_times), 2)
+                avg_response_time = round(np.mean(response_times), 2) if response_times else 0
 
                 website_statuses.append(
                     {
@@ -58,12 +63,12 @@ def index():
 
 @app.route("/website/<website>")
 def website_details(website):
-    # Fetch last 100 entries for the selected website
+    # Fetch last 25 entries for the selected website
     website_collection = db[website]
     data = (
         website_collection.find({}, {"_id": 0, "timestamp": 1, "responseTime": 1})
         .sort("_id", -1)
-        .limit(100)
+        .limit(25)
     )
     status_colours = {
         "Major Outage": "#dc3545",
@@ -82,7 +87,7 @@ def website_details(website):
 
     # Get the name of the website
     website_name = website
-
+    response_times = [ i if i else 0 for i in response_times]
     # Get the current status of the website
     last_entry = website_collection.find_one({}, sort=[("_id", -1)])
     website_status = last_entry["status"] if last_entry else "Unknown"
