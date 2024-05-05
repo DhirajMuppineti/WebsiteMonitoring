@@ -59,6 +59,36 @@
 
         Plotly.newPlot('responseTimesChart', [trace], layout);
     </script>
+    <!-- Average Response Time Over Time Plot -->
+    <div class="container mt-4">
+        <h3>Average Response Time vs Time</h3>
+        <div id="movingWindowAverageChart"></div>
+    </div>
+    <script>
+        var timestamps = {{ timestamps | tojson | safe }};
+        var movingWindowAverage = {{ moving_window_average | tojson | safe }};
+
+
+        // Plot for Moving Window Average
+        var movingWindowTrace = {
+            x: timestamps,
+            y: movingWindowAverage,
+            mode: 'lines',
+            type: 'scatter',
+            name: 'Moving Window Average'
+        };
+        var movingWindowLayout = {
+            title: 'Moving Window Average',
+            xaxis: {
+                title: 'Timestamp'
+            },
+            yaxis: {
+                title: 'Response Time (ms)'
+            }
+        };
+        Plotly.newPlot('movingWindowAverageChart', [movingWindowTrace], movingWindowLayout);
+    </script>
+    
 
     <!-- Histogram for Response Time Distribution -->
     <div class="container mt-4">

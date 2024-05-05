@@ -61,14 +61,15 @@ def index():
     return render_template("index.html", website_statuses=website_statuses)
 
 
+
 @app.route("/website/<website>")
 def website_details(website):
-    # Fetch last 25 entries for the selected website
+    # Fetch last 100 entries for the selected website
     website_collection = db[website]
     data = (
         website_collection.find({}, {"_id": 0, "timestamp": 1, "responseTime": 1})
         .sort("_id", -1)
-        .limit(25)
+        .limit(100)
     )
     status_colours = {
         "Major Outage": "#dc3545",
@@ -87,20 +88,29 @@ def website_details(website):
 
     # Get the name of the website
     website_name = website
-    response_times = [ i if i else 0 for i in response_times]
+
     # Get the current status of the website
     last_entry = website_collection.find_one({}, sort=[("_id", -1)])
     website_status = last_entry["status"] if last_entry else "Unknown"
 
-    # Calculate maximum, minimum, and average response times
+    # Calculate maximum, minimum, and median response times
     max_response_time = max(response_times) if response_times else 0
     min_response_time = min(response_times) if response_times else 0
-    avg_response_time = round(np.mean(response_times), 2) if response_times else 0
     median_response_time = median(response_times) if response_times else 0
+
+    # Calculate average response time of the last 10 entries
+    last_10_response_times = response_times[:10]  # Consider only the last 10 entries
+    avg_response_time = (
+        round(np.mean(last_10_response_times), 2) if last_10_response_times else 0
+    )
 
     # Calculate status counts for pie chart
     status_counts = Counter(entry["status"] for entry in website_collection.find())
     statuses = list(status_counts.keys())
+
+    # Calculate moving window average
+    window_size = 25  # Specify the size of the moving window
+    moving_window_average = calculate_moving_window_average(response_times, window_size)
 
     return render_template(
         "dashboard.html",
@@ -108,14 +118,24 @@ def website_details(website):
         website_status=website_status,
         max_response_time=max_response_time,
         min_response_time=min_response_time,
-        avg_response_time=avg_response_time,
         median_response_time=median_response_time,
+        avg_response_time=avg_response_time,
+        moving_window_average=moving_window_average,
         timestamps=timestamps,
         response_times=response_times,
         statuses=statuses,
         status_counts=status_counts,
-        status_colours=status_colours
+        status_colours=status_colours,
     )
+
+
+def calculate_moving_window_average(response_times, window_size):
+    moving_window_average = []
+    for i in range(len(response_times)):
+        start_index = max(0, i - window_size + 1)
+        window = response_times[start_index : i + 1]
+        moving_window_average.append(np.mean(window))
+    return moving_window_average
 
 
 if __name__ == "__main__":
